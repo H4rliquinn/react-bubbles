@@ -17,25 +17,38 @@ const ColorList = ({ colors, updateColors, setUpdated }) => {
 
   const saveEdit = e => {
     e.preventDefault();
-    // console.log();
+    // console.log("UPDATE", colorToEdit.id, colorToEdit);
     axiosWithAuth()
       .put("/colors/" + colorToEdit.id, colorToEdit)
       .then(res => {
-        // console.log("CoLORS", colors);
-        const newColors = colors;
-        newColors[colorToEdit.id - 1] = colorToEdit;
+        const newColors = colors.map(item => {
+          // console.log(item.id, colorToEdit.id);
+          if (item.id == colorToEdit.id) {
+            return (item = colorToEdit);
+          } else {
+            return item;
+          }
+        });
         updateColors(newColors);
         setEditing(false);
       })
       .catch(err => console.log(err));
-
-    // Make a put request to save your updated color
-    // think about where will you get the id from...
-    // where is is saved right now?
   };
 
   const deleteColor = color => {
-    // make a delete request to delete this color
+    axiosWithAuth()
+      .delete("/colors/" + color.id)
+      .then(res => {
+        console.log("DELETE", colors, color.id);
+        const newColors = colors.filter(item => {
+          if (item.id !== color.id) {
+            console.log("FOUND", item.id, color.id);
+            return item;
+          }
+        });
+        updateColors(newColors);
+      })
+      .catch(err => console.log(err));
   };
 
   return (
@@ -43,13 +56,11 @@ const ColorList = ({ colors, updateColors, setUpdated }) => {
       <p>colors</p>
       <ul>
         {colors.map(color => (
-          <li key={color.color} onClick={() => editColor(color)}>
-            <span>
-              <span className="delete" onClick={() => deleteColor(color)}>
-                x
-              </span>{" "}
-              {color.color}
+          <li key={color.color}>
+            <span className="delete" onClick={() => deleteColor(color)}>
+              x
             </span>
+            <span onClick={() => editColor(color)}> {color.color}</span>
             <div
               className="color-box"
               style={{ backgroundColor: color.code.hex }}
